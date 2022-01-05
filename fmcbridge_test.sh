@@ -21,6 +21,12 @@ SPI2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9
 I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
 I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~~~Device Initialization~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
+
 if [ -z $SPI1_DEVICE ]; then
 	echo_red "AD5761_SPI1 not found."
 	exit 1
@@ -84,7 +90,8 @@ do
 	echo ""
 
 	GPIO=$(($GPIO_FIRST+$i))
-	if [[ $i > 2 ]]; then
+	if (( $i > 2 ))
+	then
 		GPIO=$(($GPIO + 2))
 	fi
 
@@ -97,11 +104,11 @@ do
 
 	echo "Reading VIN${i}"
 	ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
-	if [[ $ADC_VAL < 2000 ]]
+	if (( $ADC_VAL > 2000 ))
 	then
-		echo_red "ADC2 test FAILED with value:$ADC_VAL"
-	else
 		echo_green "ADC2 test PASSED with value:$ADC_VAL"
+	else
+		echo_red "ADC2 test FAILED with value:$ADC_VAL"
 	fi
 
 	echo "Set GPIO${GPIO_INDEX} low"
@@ -109,11 +116,11 @@ do
 
 	echo "Reading VIN${i}"
 	ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
-	if [[ $ADC_VAL > 2000 ]]
+	if (( $ADC_VAL < 2000 ))
 	then
-		echo_red "ADC2 test FAILED with value:$ADC_VAL"
-	else
 		echo_green "ADC2 test PASSED with value:$ADC_VAL"
+	else
+		echo_red "ADC2 test FAILED with value:$ADC_VAL"
 	fi
 done
 
@@ -129,21 +136,25 @@ echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
 echo "Reading raw value from DAC1:"
 DAC1_VAL=`cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
 
-if [[ ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ]]
+if (( ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ))
 then
 	echo_red "DAC1 test FAILED with value: $DAC1_VAL"
 else
 	echo_green "DAC1 test PASSED with value: $DAC1_VAL"
 fi
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Start testing DAC2~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
 
 echo "Writing raw value 2000 to DAC2"
 echo 2000 > /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw
 
 echo "Reading raw value from DAC2:"
 DAC2_VAL=`cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
-if [[ ($DAC2_VAL < 1500) || ($DAC2_VAL > 2500) ]]
+if (( ($DAC2_VAL < 1500) || ($DAC2_VAL > 2500) ))
 then
 	echo_red "DAC1 test FAILED with value: $DAC2_VAL"
 else
@@ -188,7 +199,7 @@ do
 
 	echo "Reading GPIO INPUT:"
 	GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
-	if [ $GPIOIN_VAL==1 ]
+	if (( $GPIOIN_VAL == 1 ))
 	then
 		echo_green "SPI1_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
@@ -199,8 +210,8 @@ do
 	echo 0 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
 
 	echo "Reading GPIO INPUT:"
-	$GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
-	if [ $GPIOIN_VAL==0 ]
+	GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
+	if (( $GPIOIN_VAL == 0 ))
 	then
 		echo_green "SPI1_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
@@ -247,7 +258,7 @@ do
 
 	echo "Reading GPIO INPUT"
 	GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI2/value`
-	if [ $GPIOIN_VAL==1 ]
+	if (( $GPIOIN_VAL == 1 ))
 	then
 		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
@@ -259,7 +270,7 @@ do
 
 	echo "Reading GPIO INPUT:"
 	GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI2/value`
-	if [ $GPIOIN_VAL==0 ]
+	if (( $GPIOIN_VAL == 0 ))
 	then
 		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
