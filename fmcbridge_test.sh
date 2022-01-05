@@ -66,7 +66,7 @@ else
 	echo "GPIO initial offset found: $GPIO_FIRST"
 fi
 
-GPIO_LAST=$(($GPIO_FIRST + 20))
+GPIO_LAST=$(($GPIO_FIRST + 21))
 
 echo ""
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
