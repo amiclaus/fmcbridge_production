@@ -22,7 +22,7 @@ I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9
 I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
 if [ -z $SPI1_DEVICE ]; then
-	echo "AD5761_SPI1 not found."
+	echo_red "AD5761_SPI1 not found."
 	exit 1
 else
 	SPI1_DEVICE="iio:device${SPI1_DEVICE}"
@@ -30,7 +30,7 @@ else
 fi
 
 if [ -z $SPI2_DEVICE ]; then
-	echo "AD5761_SPI12 not found."
+	echo_red "AD5761_SPI12 not found."
 	exit 1
 else
 	SPI2_DEVICE="iio:device${SPI2_DEVICE}"
@@ -38,7 +38,7 @@ else
 fi
 
 if [ -z $I2C1_DEVICE ]; then
-	echo "AD7291_I2C1 not found."
+	echo_red "AD7291_I2C1 not found."
 	exit 1
 else
 	I2C1_DEVICE="iio:device${I2C1_DEVICE}"
@@ -46,7 +46,7 @@ else
 fi
 
 if [ -z $I2C2_DEVICE ]; then
-	echo "AD7291_I2C2 not found."
+	echo_red "AD7291_I2C2 not found."
 	exit 1
 else
 	I2C2_DEVICE="iio:device${I2C2_DEVICE}"
@@ -54,7 +54,7 @@ else
 fi
 
 if [ -z $GPIO_FIRST ]; then
-	echo "No GPIO node found. Exiting test script.."
+	echo_red "No GPIO node found. Exiting test script.."
 	exit 1
 else
 	echo "GPIO initial offset found: $GPIO_FIRST"
@@ -85,7 +85,13 @@ do
 	echo "Set GPIO${GPIO_INDEX} high"
 	echo 1 > /sys/class/gpio/gpio$GPIO/value
 	echo "Reading VIN${i}"
-	echo `cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
+	ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
+	if [[ $ADC_VAL < 2000 ]]
+	then
+		echo_red "ADC2 test FAILED with value:$ADC_VAL"
+	else
+		echo_green "ADC2 test PASSED with value:$ADC_VAL"
+	fi
 done
 
 echo "~~~~~~~~~Start testing DAC1~~~~~~~~~~~"
@@ -93,7 +99,13 @@ echo "~~~~~~~~~Start testing DAC1~~~~~~~~~~~"
 echo "Writing raw value 2000 to DAC1"
 echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
 echo "Reading raw value from DAC1:"
-echo `cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
+DAC1_VAL=`cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
+if [[ ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ]]
+then
+	echo_red "DAC1 test FAILED with value: $DAC1_VAL"
+else
+	echo_green "DAC1 test PASSED with value: $DAC1_VAL"
+fi
 
 echo "~~~~~~~~~Start testing DAC2~~~~~~~~~~~"
 #Test DAC2
@@ -136,10 +148,10 @@ do
 done
 
 echo "~~~~~~~~~Start testing SPI2 GPIOS~~~~~~~~~~~"
-SPI2_GPIO_FIRST=$(($SPI2_GPIO_FIRST + 7))
+SPI2_GPIO_FIRST=$(($SPI1_GPIO_FIRST + 7))
 GPIO_INPUT_SPI2=$(($GPIO_INPUT_SPI1 + 1))
 
-echo in > /sys/class/gpio/gpio$GPIO_INPUT/direction
+echo in > /sys/class/gpio/gpio$GPIO_INPUT_SPI2/direction
 
 GPIO5=$(($GPIO_FIRST+5))
 GPIO6=$(($GPIO_FIRST+6))
@@ -155,15 +167,25 @@ do
 	echo $A1 > /sys/class/gpio/gpio$GPIO6/value
 	echo $A0 > /sys/class/gpio/gpio$GPIO7/value
 	SPI2_CS_GPIO=$(($SPI2_GPIO_FIRST + $i))
-	echo "SPI_CS_GPIO: $SPI2_CS_GPIO"
 	echo out > /sys/class/gpio/gpio$SPI2_CS_GPIO/direction
 	echo "SPI2_CS${i} set high"
-	echo "${GPIO_INPUT}"
 	echo 1 > /sys/class/gpio/gpio$SPI2_CS_GPIO/value
-	echo "Reading GPIO INPUT:"
-	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
+	echo "Reading GPIO INPUT"
+	GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI2/value`
+	if [ $GPIOIN_VAL==1 ]
+	then
+		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
+	else
+		echo_red "SPI2_CS${i} test FAILED."
+	fi
 	echo "SPI2_CS${i} set low"
 	echo 0 > /sys/class/gpio/gpio$SPI2_CS_GPIO/value
 	echo "Reading GPIO INPUT:"
-	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
+	GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI2/value`
+	if [ $GPIOIN_VAL==0 ]
+	then
+		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
+	else
+		echo_red "SPI2_CS${i} test failed."
+	fi
 done
