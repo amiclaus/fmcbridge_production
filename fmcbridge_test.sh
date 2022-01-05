@@ -63,7 +63,7 @@ echo "GPIO initialization done."
 
 echo "SPI device 1 scale ${SPI1_SCALE}"
 
-echo "\n~~~~~~~~~Start testing ADC2~~~~~~~~~~~\n"
+echo "~~~~~~~~~Start testing ADC2~~~~~~~~~~~"
 for ((i=0;i<=5;i++))
 do
 	GPIO=$(($GPIO_FIRST+$i))
@@ -80,46 +80,49 @@ do
 	echo `cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
 done
 
-echo "\n~~~~~~~~~Start testing DAC1~~~~~~~~~~~\n"
+echo "~~~~~~~~~Start testing DAC1~~~~~~~~~~~"
 #Test DAC1
 echo "Writing raw value 2000 to DAC1"
 echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
 echo "Reading raw value from DAC1:"
 echo `cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
 
-echo "\n~~~~~~~~~Start testing DAC2~~~~~~~~~~~\n"
+echo "~~~~~~~~~Start testing DAC2~~~~~~~~~~~"
 #Test DAC2
 echo "Writing raw value 2000 to DAC2"
 echo 2000 > /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw
 echo "Reading raw value from DAC2:"
 echo `cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
 
-echo "\n~~~~~~~~~Start testing SPI1 GPIOS~~~~~~~~~~~\n"
-SPI1_GPIO_FIRST=$(($GPIO_FIRST + 8))
-GPIO_INPUT=$(($GPIO_FIRST + 4))
+echo "~~~~~~~~~Start testing SPI1 GPIOS~~~~~~~~~~~"
+SPI1_GPIO_FIRST=$(($GPIO_FIRST + 7))
+GPIO_INPUT=$(($GPIO_FIRST + 3))
 
 echo in > /sys/class/gpio/gpio$GPIO_INPUT/direction
 
 GPIO0=$(($GPIO_FIRST))
 GPIO1=$(($GPIO_FIRST+1))
 GPIO2=$(($GPIO_FIRST+2))
-for ((i=0;i<=8;i++))
+for ((i=1;i<8;i++))
 do
 	A0=$((($i>>0) & 1))
 	A1=$((($i>>1) & 1))
 	A2=$((($i>>2) & 1))
 	echo "Testing SPI1_CS${i}"
-	echo "A2:${A2} A2:${A1} A0:${A0}"
+	echo "A2:${A2} A1:${A1} A0:${A0}"
 	echo $A2 > /sys/class/gpio/gpio$GPIO0/value
 	echo $A1 > /sys/class/gpio/gpio$GPIO1/value
 	echo $A0 > /sys/class/gpio/gpio$GPIO2/value
 	SPI1_CS_GPIO=$(($SPI1_GPIO_FIRST + $i))
+	echo "SPI_CS_GPIO: $SPI1_CS_GPIO"
+	echo out > /sys/class/gpio/gpio$SPI1_CS_GPIO/direction
 	echo "SPI1_CS${i} set high"
+	echo "${GPIO_INPUT}"
 	echo 1 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
 	echo "Reading GPIO INPUT:"
-	echo `/sys/class/gpio/gpio$GPIO_INPUT/value`
+	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
 	echo "SPI1_CS${i} set low"
-	echo 1 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
+	echo 0 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
 	echo "Reading GPIO INPUT:"
-	echo `/sys/class/gpio/gpio$GPIO_INPUT/value`
+	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
 done
