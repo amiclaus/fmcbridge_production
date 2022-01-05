@@ -62,17 +62,27 @@ fi
 
 GPIO_LAST=$(($GPIO_FIRST + 20))
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Initializing GPIOs~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
 for ((i=$GPIO_FIRST;i<=$GPIO_LAST;i++))
 do
 	echo "$i" > /sys/class/gpio/export 2>&1
 done
 echo "GPIO initialization done."
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Start testing ADC2~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
 
 for ((i=0;i<=5;i++))
 do
+	echo ""
+
 	GPIO=$(($GPIO_FIRST+$i))
 	if [[ $i > 2 ]]; then
 		GPIO=$(($GPIO + 2))
@@ -107,7 +117,11 @@ do
 	fi
 done
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Start testing DAC1~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
 
 echo "Writing raw value 2000 to DAC1"
 echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
@@ -136,8 +150,11 @@ else
 	echo_green "DAC1 test PASSED with value: $DAC2_VAL"
 fi
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Start testing SPI1 GPIOS~~~~~~~~~"
-
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
 SPI1_GPIO_FIRST=$(($GPIO_FIRST + 7))
 GPIO_INPUT_SPI1=$(($GPIO_FIRST + 3))
 
@@ -149,6 +166,8 @@ GPIO2=$(($GPIO_FIRST+2))
 
 for ((i=1;i<8;i++))
 do
+	echo ""
+
 	A0=$((($i>>0) & 1))
 	A1=$((($i>>1) & 1))
 	A2=$((($i>>2) & 1))
@@ -180,7 +199,7 @@ do
 	echo 0 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
 
 	echo "Reading GPIO INPUT:"
-	$GPIOIN_VAL = `cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
+	$GPIOIN_VAL=`cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
 	if [ $GPIOIN_VAL==0 ]
 	then
 		echo_green "SPI1_CS${i} test PASSED with value $GPIOIN_VAL"
@@ -189,7 +208,11 @@ do
 	fi
 done
 
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Start testing SPI2 GPIOS~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
 
 SPI2_GPIO_FIRST=$(($SPI1_GPIO_FIRST + 7))
 GPIO_INPUT_SPI2=$(($GPIO_INPUT_SPI1 + 1))
@@ -202,6 +225,8 @@ GPIO7=$(($GPIO_FIRST+7))
 
 for ((i=1;i<8;i++))
 do
+	echo ""
+
 	A0=$((($i>>0) & 1))
 	A1=$((($i>>1) & 1))
 	A2=$((($i>>2) & 1))
