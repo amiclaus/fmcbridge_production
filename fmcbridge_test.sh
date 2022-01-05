@@ -10,8 +10,8 @@ GPIO_FIRST=`ls -l /sys/class/gpio/ | grep " gpiochip" | grep "$GPIO_ADDRESS" | g
 
 SPI1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI1_ADDRESS" | grep -Eo '[0-9]+$'`
 SPI2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9]+$'`
-I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI1_ADDRESS" | grep -Eo '[0-9]+$'`
-I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9]+$'`
+I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
+I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
 if [ -z $SPI1_DEVICE ]; then
 	echo "AD5761_SPI1 not found."
@@ -22,7 +22,7 @@ else
 fi
 
 if [ -z $SPI2_DEVICE ]; then
-	echo "AD5761_SPI12not found."
+	echo "AD5761_SPI12 not found."
 	exit 1
 else
 	SPI2_DEVICE="iio:device${SPI2_DEVICE}"
@@ -59,6 +59,28 @@ do
 	echo "$i" > /sys/class/gpio/export 2>&1
 done	
 
-SPI1_SCALE=`cat /sys/bus/iio/devices/$SPI1_DEVICE/out_voltage_scale`
-
 echo "SPI device 1 scale ${SPI1_SCALE}"
+
+echo "~~~~~~~~~Start testing ADC2~~~~~~~~~~~"
+for ((i=0;i<=5;i++))
+do
+	GPIO=$(($GPIO_FIRST+$i))
+	if [[ $i > 2 ]]; then
+		GPIO=$(($GPIO + 2))
+	fi
+
+	GPIO_INDEX=$(($GPIO - $GPIO_FIRST))
+
+	echo out > /sys/class/gpio/gpio$GPIO/direction
+	echo "Set GPIO${GPIO_INDEX} high"
+	echo 1 > /sys/class/gpio/gpio$GPIO/value
+	echo "Reading VIN${i}"
+	echo `cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
+done
+
+#Test DAC1
+
+echo "Writing raw value 2000 to DAC1"
+echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
+echo "Reading raw value from DAC1:"
+echo `cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
