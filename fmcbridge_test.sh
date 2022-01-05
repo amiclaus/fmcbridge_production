@@ -1,5 +1,13 @@
 #!/bin/bash
 
+echo_red() { printf "\033[1;31m$*\033[m\n"; }
+echo_green() { printf "\033[1;32m$*\033[m\n"; }
+
+if [ $(id -u) -ne 0 ] ; then
+	echo "Please run as root"
+	exit 1
+fi
+
 GPIO_ADDRESS=86000000
 SPI1_ADDRESS=84000000
 SPI2_ADDRESS=84500000
@@ -96,9 +104,9 @@ echo `cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
 
 echo "~~~~~~~~~Start testing SPI1 GPIOS~~~~~~~~~~~"
 SPI1_GPIO_FIRST=$(($GPIO_FIRST + 7))
-GPIO_INPUT=$(($GPIO_FIRST + 3))
+GPIO_INPUT_SPI1=$(($GPIO_FIRST + 3))
 
-echo in > /sys/class/gpio/gpio$GPIO_INPUT/direction
+echo in > /sys/class/gpio/gpio$GPIO_INPUT_SPI1/direction
 
 GPIO0=$(($GPIO_FIRST))
 GPIO1=$(($GPIO_FIRST+1))
@@ -117,12 +125,45 @@ do
 	echo "SPI_CS_GPIO: $SPI1_CS_GPIO"
 	echo out > /sys/class/gpio/gpio$SPI1_CS_GPIO/direction
 	echo "SPI1_CS${i} set high"
-	echo "${GPIO_INPUT}"
+	echo "${GPIO_INPUT_SPI1}"
 	echo 1 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
 	echo "Reading GPIO INPUT:"
-	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
+	echo `cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
 	echo "SPI1_CS${i} set low"
 	echo 0 > /sys/class/gpio/gpio$SPI1_CS_GPIO/value
+	echo "Reading GPIO INPUT:"
+	echo `cat /sys/class/gpio/gpio$GPIO_INPUT_SPI1/value`
+done
+
+echo "~~~~~~~~~Start testing SPI2 GPIOS~~~~~~~~~~~"
+SPI2_GPIO_FIRST=$(($SPI2_GPIO_FIRST + 7))
+GPIO_INPUT_SPI2=$(($GPIO_INPUT_SPI1 + 1))
+
+echo in > /sys/class/gpio/gpio$GPIO_INPUT/direction
+
+GPIO5=$(($GPIO_FIRST+5))
+GPIO6=$(($GPIO_FIRST+6))
+GPIO7=$(($GPIO_FIRST+7))
+for ((i=1;i<8;i++))
+do
+	A0=$((($i>>0) & 1))
+	A1=$((($i>>1) & 1))
+	A2=$((($i>>2) & 1))
+	echo "Testing SPI2_CS${i}"
+	echo "A2:${A2} A1:${A1} A0:${A0}"
+	echo $A2 > /sys/class/gpio/gpio$GPIO5/value
+	echo $A1 > /sys/class/gpio/gpio$GPIO6/value
+	echo $A0 > /sys/class/gpio/gpio$GPIO7/value
+	SPI2_CS_GPIO=$(($SPI2_GPIO_FIRST + $i))
+	echo "SPI_CS_GPIO: $SPI2_CS_GPIO"
+	echo out > /sys/class/gpio/gpio$SPI2_CS_GPIO/direction
+	echo "SPI2_CS${i} set high"
+	echo "${GPIO_INPUT}"
+	echo 1 > /sys/class/gpio/gpio$SPI2_CS_GPIO/value
+	echo "Reading GPIO INPUT:"
+	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
+	echo "SPI2_CS${i} set low"
+	echo 0 > /sys/class/gpio/gpio$SPI2_CS_GPIO/value
 	echo "Reading GPIO INPUT:"
 	echo `cat /sys/class/gpio/gpio$GPIO_INPUT/value`
 done
