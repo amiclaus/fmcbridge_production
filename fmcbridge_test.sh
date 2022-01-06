@@ -81,6 +81,26 @@ echo "GPIO initialization done."
 
 echo ""
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~~~~~Start testing ADC1~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo ""
+
+for ((i=0;i<=5;i++))
+do
+	echo ""
+
+	echo "Reading VIN${i}"
+	ADC_VAL=`cat /sys/bus/iio/devices/${I2C1_DEVICE}/in_voltage${i}_raw`
+	if (( $ADC_VAL > 2000 ))
+	then
+		echo_green "ADC1 test PASSED with value:$ADC_VAL"
+	else
+		echo_red "ADC1 test FAILED with value:$ADC_VAL"
+	fi
+done
+
+echo ""
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~Start testing ADC2~~~~~~~~~"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo ""
