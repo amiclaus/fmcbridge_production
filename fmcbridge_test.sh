@@ -95,7 +95,7 @@ do
 	echo "Reading VIN${i}"
 	ADC_VAL=`cat /sys/bus/iio/devices/${I2C1_DEVICE}/in_voltage${i}_raw`
 	echo "VIN$1 RANGE: ${ADC1_RANGES[$MIN_VAL]} ${ADC1_RANGES[$MAX_VAL]}"
-	if (( ($ADC_VAL > ${ADC1_RANGES[$MIN_VAL]}) && ($ADC_VAL > ${$MAX_VAL]}) ))
+	if (( ($ADC_VAL > ${ADC1_RANGES[$MIN_VAL]}) && ($ADC_VAL < ${ADC1_RANGES[$MAX_VAL]}) ))
 	then
 		echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL"
 	else
