@@ -94,11 +94,12 @@ do
 	MAX_VAL=$i*2+1
 	echo "Reading VIN${i}"
 	ADC_VAL=`cat /sys/bus/iio/devices/${I2C1_DEVICE}/in_voltage${i}_raw`
-	if (( ($ADC_VAL > ${ADC1_RANGES[$i*2]}) && ($ADC_VAL > ${ADC1_RANGES[$i*2+1]}) ))
+	echo "VIN$1 RANGE: ${ADC1_RANGES[$MIN_VAL]} ${ADC1_RANGES[$MAX_VAL]}"
+	if (( ($ADC_VAL > ${ADC1_RANGES[$MIN_VAL]}) && ($ADC_VAL > ${$MAX_VAL]}) ))
 	then
-		echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL RANGE: ${ADC1_RANGES[$MIN_VAL]} ${ADC1_RANGES[$MAX_VAL]}"
+		echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL"
 	else
-		echo_red "ADC1 VIN$i test FAILED with value:$ADC_VAL  RANGE: ${ADC1_RANGES[$MIN_VAL]} ${ADC1_RANGES[$MAX_VAL]}"
+		echo_red "ADC1 VIN$i test FAILED with value:$ADC_VAL"
 	fi
 done
 
