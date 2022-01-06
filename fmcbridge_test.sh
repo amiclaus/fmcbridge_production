@@ -85,17 +85,19 @@ echo "~~~~~~~~~Start testing ADC1~~~~~~~~~"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo ""
 
-for ((i=0;i<=5;i++))
+ADC1_RANGES=(2000 3000 1000 2000 500 2000 1000 2000 200 3000 1500 3500 100 200)
+
+for ((i=0;i<=6;i++))
 do
 	echo ""
 
 	echo "Reading VIN${i}"
 	ADC_VAL=`cat /sys/bus/iio/devices/${I2C1_DEVICE}/in_voltage${i}_raw`
-	if (( $ADC_VAL > 2000 ))
+	if (( ($ADC_VAL > ${ADC1_RANGES[$i*2]}) && ($ADC_VAL > ${ADC1_RANGES[$i*2+1]})))
 	then
-		echo_green "ADC1 test PASSED with value:$ADC_VAL"
+		echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL    ${ADC1_RANGES[$i*2]} ${ADC1_RANGES[$i*2+1]}"
 	else
-		echo_red "ADC1 test FAILED with value:$ADC_VAL"
+		echo_red "ADC1 VIN$i test FAILED with value:$ADC_VAL    ${ADC1_RANGES[$i*2]} ${ADC1_RANGES[$i*2+1]}"
 	fi
 done
 
