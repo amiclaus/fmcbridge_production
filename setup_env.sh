@@ -9,6 +9,13 @@ SCRIPT_DIR="$(readlink -f $(dirname $0))"
 
 BOARD="fmcbridge"
 
+sudo_required() {
+	type sudo &> /dev/null || {
+		echo_red "'sudo' utility required"
+		exit 1
+	}
+}
+
 setup_apt_install_prereqs() {
 	type apt-get &> /dev/null || {
 		echo "No 'apt-get' found; cannot install dependencies"
