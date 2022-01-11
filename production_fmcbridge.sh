@@ -329,5 +329,5 @@ then
 	console_ascii_passed
 else
 	echo_red "TESTS HAVE FAILED"
-	console_ascii_passed
+	console_ascii_failed
 fi
