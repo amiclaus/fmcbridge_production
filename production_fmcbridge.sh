@@ -331,3 +331,6 @@ else
 	echo_red "TESTS HAVE FAILED"
 	console_ascii_failed
 fi
+
+while true; do
+done
