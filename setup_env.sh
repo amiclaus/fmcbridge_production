@@ -11,8 +11,19 @@ BOARD="fmcbridge"
 
 setup_write_autostart_config() {
 	local autostart_path="$HOME/.config/autostart"
+	local configs_disable="blueman light-locker polkit-gnome-authentication-agent-1"
+
+	configs_disable="$configs_disable print-applet pulseaudio snap-userd-autostart"
+	configs_disable="$configs_disable spice-vdagent update-notifier user-dirs-update-gtk xdg-user-dirs"
 
 	mkdir -p $autostart_path
+
+	for cfg in $configs_disable ; do
+		cat > $autostart_path/$cfg.desktop <<-EOF
+[Desktop Entry]
+Hidden=true
+		EOF
+	done
 
 	local font_size="16"
 
