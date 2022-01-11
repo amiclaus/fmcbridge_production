@@ -298,6 +298,6 @@ do
 	then
 		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
-		echo_red "SPI2_CS${i} test failed."
+		echo_red "SPI2_CS${i} test FAILED."
 	fi
 done
