@@ -3,10 +3,20 @@
 echo_red() { printf "\033[1;31m$*\033[m\n"; }
 echo_green() { printf "\033[1;32m$*\033[m\n"; }
 
+SCRIPT_DIR="$(readlink -f $(dirname $0))"
+
 if [ $(id -u) -ne 0 ] ; then
 	echo "Please run as root"
 	exit 1
 fi
+
+console_ascii_passed() {
+	echo_green "$(cat $SCRIPT_DIR/lib/passed.ascii)"
+}
+
+console_ascii_failed() {
+	echo_red "$(cat $SCRIPT_DIR/lib/failed.ascii)"
+}
 
 GPIO_ADDRESS=86000000
 SPI1_ADDRESS=84000000
@@ -316,6 +326,8 @@ done
 if [ -z "$STATUS" ]
 then
 	echo_green "ALL TESTS HAVE PASSED"
+	console_ascii_passed
 else
 	echo_red "TESTS HAVE FAILED"
+	console_ascii_passed
 fi
