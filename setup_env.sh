@@ -9,6 +9,25 @@ SCRIPT_DIR="$(readlink -f $(dirname $0))"
 
 BOARD="fmcbridge"
 
+setup_apt_install_prereqs() {
+	type apt-get &> /dev/null || {
+		echo "No 'apt-get' found; cannot install dependencies"
+		return 0
+	}
+	sudo_required
+	sudo -s <<-EOF
+	apt-get -y update
+	apt-get -y install bc sshpass libfftw3-dev librsvg2-dev libgtk-3-dev \
+		cmake build-essential git libxml2 libxml2-dev bison flex \
+		expect usbutils dfu-util screen libaio-dev libglib2.0-dev picocom \
+		wget unzip curl cups cups-bsd intltool itstool libxml2-utils \
+		libusb-dev libusb-1.0-0-dev htpdate xfce4-terminal libiec16022-dev \
+		openssh-server gpg dnsmasq libcurl4-gnutls-dev libqrencode-dev pv \
+		python3-pytest python3-libiio python3-scapy python3-scipy
+	/etc/init.d/htpdate restart
+	EOF
+}
+
 setup_write_autostart_config() {
 	local autostart_path="$HOME/.config/autostart"
 	local configs_disable="blueman light-locker polkit-gnome-authentication-agent-1"
@@ -61,5 +80,7 @@ Hidden=false
 	EOF
 
 }
+
+setup_apt_install_prereqs
 
 setup_write_autostart_config
