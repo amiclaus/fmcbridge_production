@@ -21,6 +21,8 @@ SPI2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9
 I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
 I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
+STATUS=0
+
 echo ""
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~Device Initialization~~~~~~~~"
@@ -100,6 +102,7 @@ do
 		echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL"
 	else
 		echo_red "ADC1 VIN$i test FAILED with value:$ADC_VAL"
+		STATUS=1
 	fi
 done
 
@@ -133,6 +136,7 @@ do
 		echo_green "ADC2 test PASSED with value:$ADC_VAL"
 	else
 		echo_red "ADC2 test FAILED with value:$ADC_VAL"
+		STATUS=1
 	fi
 
 	echo "Set GPIO${GPIO_INDEX} low"
@@ -145,6 +149,7 @@ do
 		echo_green "ADC2 test PASSED with value:$ADC_VAL"
 	else
 		echo_red "ADC2 test FAILED with value:$ADC_VAL"
+		STATUS=1
 	fi
 done
 
@@ -163,6 +168,7 @@ DAC1_VAL=`cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
 if (( ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ))
 then
 	echo_red "DAC1 test FAILED with value: $DAC1_VAL"
+	STATUS=1
 else
 	echo_green "DAC1 test PASSED with value: $DAC1_VAL"
 fi
@@ -181,6 +187,7 @@ DAC2_VAL=`cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
 if (( ($DAC2_VAL < 1500) || ($DAC2_VAL > 2500) ))
 then
 	echo_red "DAC1 test FAILED with value: $DAC2_VAL"
+	STATUS=1
 else
 	echo_green "DAC1 test PASSED with value: $DAC2_VAL"
 fi
@@ -228,6 +235,7 @@ do
 		echo_green "SPI1_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
 		echo_red "SPI1_CS${i} test FAILED."
+		STATUS=1
 	fi
 
 	echo "SPI1_CS${i} set low"
@@ -240,6 +248,7 @@ do
 		echo_green "SPI1_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
 		echo_red "SPI1_CS${i} test FAILED."
+		STATUS=1
 	fi
 done
 
@@ -287,6 +296,7 @@ do
 		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
 		echo_red "SPI2_CS${i} test FAILED."
+		STATUS=1
 	fi
 
 	echo "SPI2_CS${i} set low"
@@ -299,5 +309,13 @@ do
 		echo_green "SPI2_CS${i} test PASSED with value $GPIOIN_VAL"
 	else
 		echo_red "SPI2_CS${i} test FAILED."
+		STATUS=1
 	fi
 done
+
+if [ -z "$STATUS" ]
+then
+	echo_green "ALL TESTS HAVE PASSED"
+else
+	echo_red "TESTS HAVE FAILED"
+fi
