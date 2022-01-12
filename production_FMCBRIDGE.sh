@@ -64,7 +64,7 @@ while true; do
 		exit 1
 	else
 		I2C1_DEVICE="iio:device${I2C1_DEVICE}"
-		echo "I2C device 2 found: ${I2C1_DEVICE}"
+		echo "I2C device 1 found: ${I2C1_DEVICE}"
 	fi
 
 	if [ -z $I2C2_DEVICE ]; then
