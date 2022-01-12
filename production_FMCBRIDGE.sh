@@ -18,7 +18,7 @@ console_ascii_failed() {
 	echo_red "$(cat $SCRIPT_DIR/lib/failed.ascii)"
 }
 
-read -p "Press Enter to start FMCBRIDGE Test Procedure"
+read -p "Press ENTER to start FMCBRIDGE Test Procedure"
 
 GPIO_ADDRESS=86000000
 SPI1_ADDRESS=84000000
