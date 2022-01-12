@@ -335,4 +335,5 @@ else
 fi
 
 while true; do
+	:
 done
