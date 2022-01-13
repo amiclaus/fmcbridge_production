@@ -317,7 +317,7 @@ while true; do
 	echo ""
 	echo "~~~~~~~~~SPI1 Device Test~~~~~~~~~~~"
 	echo ""
-	if [ -z $SPI1_DEVICE ]; then
+	if [ -z $SPI1_DEVICE_NR ]; then
 		echo_red "AD5761_SPI1 not found."
 	else
 		SPI1_DEVICE="iio:device${SPI1_DEVICE_NR}"
@@ -328,7 +328,7 @@ while true; do
 	echo ""
 	echo "~~~~~~~~~SPI2 Device Test~~~~~~~~~~~"
 	echo ""
-	if [ -z $SPI2_DEVICE ]; then
+	if [ -z $SPI2_DEVICE_NR ]; then
 		echo_red "AD5761_SPI12 not found."
 	else
 		SPI2_DEVICE="iio:device${SPI2_DEVICE_NR}"
@@ -339,7 +339,7 @@ while true; do
 	echo ""
 	echo "~~~~~~~~~I2C1 Device Test~~~~~~~~~~~"
 	echo ""
-	if [ -z $I2C1_DEVICE ]; then
+	if [ -z $I2C1_DEVICE_NR ]; then
 		echo_red "AD7291_I2C1 not found."
 	else
 		I2C1_DEVICE="iio:device${I2C1_DEVICE_NR}"
@@ -350,7 +350,7 @@ while true; do
 	echo ""
 	echo "~~~~~~~~~I2C2 Device Test~~~~~~~~~~~"
 	echo ""
-	if [ -z $I2C2_DEVICE ]; then
+	if [ -z $I2C2_DEVICE_NR ]; then
 		echo_red "AD7291_I2C2 not found."
 	else
 		I2C2_DEVICE="iio:device${I2C2_DEVICE_NR}"
