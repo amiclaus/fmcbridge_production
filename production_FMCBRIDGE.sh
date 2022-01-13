@@ -183,7 +183,7 @@ dac_test_spi1(){
 	echo "Reading raw value from DAC1:"
 	DAC1_VAL=`cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
 
-	if (( ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ))
+	if (( ($DAC1_VAL < 3000) || ($DAC1_VAL > 3100) ))
 	then
 		echo_red "DAC1 test FAILED with value: $DAC1_VAL"
 		STATUS=1
@@ -204,7 +204,7 @@ dac_test_spi2(){
 
 	echo "Reading raw value from DAC2:"
 	DAC2_VAL=`cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
-	if (( ($DAC2_VAL < 1500) || ($DAC2_VAL > 2500) ))
+	if (( ($DAC2_VAL < 3000) || ($DAC2_VAL > 3100) ))
 	then
 		echo_red "DAC1 test FAILED with value: $DAC2_VAL"
 		STATUS=1
@@ -220,7 +220,7 @@ adc_test_i2c1(){
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo ""
 
-	ADC1_RANGES=(2000 3000 1000 2000 500 2000 1000 2000 200 3000 1500 3500 100 200)
+	ADC1_RANGES=(700 1000 500 700 1500 2100 1500 2100 2400 3000 400 600 2000 2500)
 
 	for ((i=0;i<=6;i++))
 	do
