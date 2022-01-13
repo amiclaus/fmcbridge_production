@@ -300,6 +300,9 @@ while true; do
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo ""
 
+	echo ""
+	echo "~~~~~~~~~~~~GPIOs Test~~~~~~~~~~~~~~"
+	echo ""
 	if [ -z $GPIO_FIRST ]; then
 		echo_red "No GPIO node found!"
 	else
@@ -310,6 +313,9 @@ while true; do
 		gpio_test_spi2
 	fi
 
+	echo ""
+	echo "~~~~~~~~~SPI1 Device Test~~~~~~~~~~~"
+	echo ""
 	if [ -z $SPI1_DEVICE ]; then
 		echo_red "AD5761_SPI1 not found."
 	else
@@ -318,6 +324,9 @@ while true; do
 		dac_test_spi1
 	fi
 
+	echo ""
+	echo "~~~~~~~~~SPI2 Device Test~~~~~~~~~~~"
+	echo ""
 	if [ -z $SPI2_DEVICE ]; then
 		echo_red "AD5761_SPI12 not found."
 	else
@@ -326,6 +335,9 @@ while true; do
 		dac_test_spi2
 	fi
 
+	echo ""
+	echo "~~~~~~~~~I2C1 Device Test~~~~~~~~~~~"
+	echo ""
 	if [ -z $I2C1_DEVICE ]; then
 		echo_red "AD7291_I2C1 not found."
 	else
@@ -334,6 +346,9 @@ while true; do
 		adc_test_i2c1
 	fi
 
+	echo ""
+	echo "~~~~~~~~~I2C2 Device Test~~~~~~~~~~~"
+	echo ""
 	if [ -z $I2C2_DEVICE ]; then
 		echo_red "AD7291_I2C2 not found."
 	else
