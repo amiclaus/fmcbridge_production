@@ -24,66 +24,14 @@ SPI2_ADDRESS=84500000
 I2C1_ADDRESS=83000000
 I2C2_ADDRESS=83100000
 
-while true; do
+GPIO_FIRST=`ls -l /sys/class/gpio/ | grep " gpiochip" | grep "$GPIO_ADDRESS" | grep -Eo '[0-9]+$'`
 
-	read -p "Press ENTER to start FMCBRIDGE Test Procedure"
+SPI1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI1_ADDRESS" | grep -Eo '[0-9]+$'`
+SPI2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9]+$'`
+I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
+I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
-	GPIO_FIRST=`ls -l /sys/class/gpio/ | grep " gpiochip" | grep "$GPIO_ADDRESS" | grep -Eo '[0-9]+$'`
-
-	SPI1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI1_ADDRESS" | grep -Eo '[0-9]+$'`
-	SPI2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9]+$'`
-	I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
-	I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
-
-	STATUS=0
-
-	echo ""
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo "~~~~~~~Device Initialization~~~~~~~~"
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo ""
-
-	if [ -z $SPI1_DEVICE ]; then
-		echo_red "AD5761_SPI1 not found."
-		exit 1
-	else
-		SPI1_DEVICE="iio:device${SPI1_DEVICE}"
-		echo "SPI device 1 found: ${SPI1_DEVICE}"
-	fi
-
-	if [ -z $SPI2_DEVICE ]; then
-		echo_red "AD5761_SPI12 not found."
-		exit 1
-	else
-		SPI2_DEVICE="iio:device${SPI2_DEVICE}"
-		echo "SPI device 2 found: ${SPI2_DEVICE}"
-	fi
-
-	if [ -z $I2C1_DEVICE ]; then
-		echo_red "AD7291_I2C1 not found."
-		exit 1
-	else
-		I2C1_DEVICE="iio:device${I2C1_DEVICE}"
-		echo "I2C device 1 found: ${I2C1_DEVICE}"
-	fi
-
-	if [ -z $I2C2_DEVICE ]; then
-		echo_red "AD7291_I2C2 not found."
-		exit 1
-	else
-		I2C2_DEVICE="iio:device${I2C2_DEVICE}"
-		echo "I2C device 2 found: ${I2C2_DEVICE}"
-	fi
-
-	if [ -z $GPIO_FIRST ]; then
-		echo_red "No GPIO node found. Exiting test script.."
-		exit 1
-	else
-		echo "GPIO initial offset found: $GPIO_FIRST"
-	fi
-
-	GPIO_LAST=$(($GPIO_FIRST + 21))
-
+gpio_initialization() {
 	echo ""
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo "~~~~~~~~~Initializing GPIOs~~~~~~~~~"
@@ -94,118 +42,9 @@ while true; do
 		echo "$i" > /sys/class/gpio/export 2>&1
 	done
 	echo "GPIO initialization done."
+}
 
-	echo ""
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo "~~~~~~~~~Start testing ADC1~~~~~~~~~"
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo ""
-
-	ADC1_RANGES=(2000 3000 1000 2000 500 2000 1000 2000 200 3000 1500 3500 100 200)
-
-	for ((i=0;i<=6;i++))
-	do
-		echo ""
-		MIN_VAL=$i*2
-		MAX_VAL=$i*2+1
-		echo "Reading VIN${i}"
-		ADC_VAL=`cat /sys/bus/iio/devices/${I2C1_DEVICE}/in_voltage${i}_raw`
-		echo "VIN$1 RANGE: ${ADC1_RANGES[$MIN_VAL]} ${ADC1_RANGES[$MAX_VAL]}"
-		if (( ($ADC_VAL > ${ADC1_RANGES[$MIN_VAL]}) && ($ADC_VAL < ${ADC1_RANGES[$MAX_VAL]}) ))
-		then
-			echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL"
-		else
-			echo_red "ADC1 VIN$i test FAILED with value:$ADC_VAL"
-			STATUS=1
-		fi
-	done
-
-	echo ""
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo "~~~~~~~~~Start testing ADC2~~~~~~~~~"
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo ""
-
-	for ((i=0;i<=5;i++))
-	do
-		echo ""
-
-		GPIO=$(($GPIO_FIRST+$i))
-		if (( $i > 2 ))
-		then
-			GPIO=$(($GPIO + 2))
-		fi
-
-		GPIO_INDEX=$(($GPIO - $GPIO_FIRST))
-
-		echo out > /sys/class/gpio/gpio$GPIO/direction
-
-		echo "Set GPIO${GPIO_INDEX} high"
-		echo 1 > /sys/class/gpio/gpio$GPIO/value
-
-		echo "Reading VIN${i}"
-		ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
-		if (( $ADC_VAL > 2000 ))
-		then
-			echo_green "ADC2 test PASSED with value:$ADC_VAL"
-		else
-			echo_red "ADC2 test FAILED with value:$ADC_VAL"
-			STATUS=1
-		fi
-
-		echo "Set GPIO${GPIO_INDEX} low"
-		echo 0 > /sys/class/gpio/gpio$GPIO/value
-
-		echo "Reading VIN${i}"
-		ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
-		if (( $ADC_VAL < 2000 ))
-		then
-			echo_green "ADC2 test PASSED with value:$ADC_VAL"
-		else
-			echo_red "ADC2 test FAILED with value:$ADC_VAL"
-			STATUS=1
-		fi
-	done
-
-	echo ""
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo "~~~~~~~~~Start testing DAC1~~~~~~~~~"
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo ""
-
-	echo "Writing raw value 2000 to DAC1"
-	echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
-
-	echo "Reading raw value from DAC1:"
-	DAC1_VAL=`cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
-
-	if (( ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ))
-	then
-		echo_red "DAC1 test FAILED with value: $DAC1_VAL"
-		STATUS=1
-	else
-		echo_green "DAC1 test PASSED with value: $DAC1_VAL"
-	fi
-
-	echo ""
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo "~~~~~~~~~Start testing DAC2~~~~~~~~~"
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	echo ""
-
-	echo "Writing raw value 2000 to DAC2"
-	echo 2000 > /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw
-
-	echo "Reading raw value from DAC2:"
-	DAC2_VAL=`cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
-	if (( ($DAC2_VAL < 1500) || ($DAC2_VAL > 2500) ))
-	then
-		echo_red "DAC1 test FAILED with value: $DAC2_VAL"
-		STATUS=1
-	else
-		echo_green "DAC1 test PASSED with value: $DAC2_VAL"
-	fi
-
+gpio_test_spi1() {
 	echo ""
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo "~~~~~~~~~Start testing SPI1 GPIOS~~~~~~~~~"
@@ -265,8 +104,10 @@ while true; do
 			STATUS=1
 		fi
 	done
+}
 
-	echo ""
+gpio_test_spi2() {
+		echo ""
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo "~~~~~~~~~Start testing SPI2 GPIOS~~~~~~~~~"
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -326,6 +167,180 @@ while true; do
 			STATUS=1
 		fi
 	done
+}
+
+dac_test_spi1(){
+	echo ""
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "~~~~~~~~~Start testing DAC1~~~~~~~~~"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo ""
+
+	echo "Writing raw value 2000 to DAC1"
+	echo 2000 > /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw
+
+	echo "Reading raw value from DAC1:"
+	DAC1_VAL=`cat /sys/bus/iio/devices/${SPI1_DEVICE}/out_voltage_raw`
+
+	if (( ($DAC1_VAL < 1500) || ($DAC1_VAL > 2500) ))
+	then
+		echo_red "DAC1 test FAILED with value: $DAC1_VAL"
+		STATUS=1
+	else
+		echo_green "DAC1 test PASSED with value: $DAC1_VAL"
+	fi
+}
+
+dac_test_spi2(){
+	echo ""
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "~~~~~~~~~Start testing DAC2~~~~~~~~~"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo ""
+
+	echo "Writing raw value 2000 to DAC2"
+	echo 2000 > /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw
+
+	echo "Reading raw value from DAC2:"
+	DAC2_VAL=`cat /sys/bus/iio/devices/${SPI2_DEVICE}/out_voltage_raw`
+	if (( ($DAC2_VAL < 1500) || ($DAC2_VAL > 2500) ))
+	then
+		echo_red "DAC1 test FAILED with value: $DAC2_VAL"
+		STATUS=1
+	else
+		echo_green "DAC1 test PASSED with value: $DAC2_VAL"
+	fi
+}
+
+adc_test_i2c1(){
+	echo ""
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "~~~~~~~~~Start testing ADC1~~~~~~~~~"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo ""
+
+	ADC1_RANGES=(2000 3000 1000 2000 500 2000 1000 2000 200 3000 1500 3500 100 200)
+
+	for ((i=0;i<=6;i++))
+	do
+		echo ""
+		MIN_VAL=$i*2
+		MAX_VAL=$i*2+1
+		echo "Reading VIN${i}"
+		ADC_VAL=`cat /sys/bus/iio/devices/${I2C1_DEVICE}/in_voltage${i}_raw`
+		echo "VIN$1 RANGE: ${ADC1_RANGES[$MIN_VAL]} ${ADC1_RANGES[$MAX_VAL]}"
+		if (( ($ADC_VAL > ${ADC1_RANGES[$MIN_VAL]}) && ($ADC_VAL < ${ADC1_RANGES[$MAX_VAL]}) ))
+		then
+			echo_green "ADC1 VIN$i test PASSED with value:$ADC_VAL"
+		else
+			echo_red "ADC1 VIN$i test FAILED with value:$ADC_VAL"
+			STATUS=1
+		fi
+	done
+}
+
+adc_test_i2c2(){
+	echo ""
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "~~~~~~~~~Start testing ADC2~~~~~~~~~"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo ""
+
+	for ((i=0;i<=5;i++))
+	do
+		echo ""
+
+		GPIO=$(($GPIO_FIRST+$i))
+		if (( $i > 2 ))
+		then
+			GPIO=$(($GPIO + 2))
+		fi
+
+		GPIO_INDEX=$(($GPIO - $GPIO_FIRST))
+
+		echo out > /sys/class/gpio/gpio$GPIO/direction
+
+		echo "Set GPIO${GPIO_INDEX} high"
+		echo 1 > /sys/class/gpio/gpio$GPIO/value
+
+		echo "Reading VIN${i}"
+		ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
+		if (( $ADC_VAL > 2000 ))
+		then
+			echo_green "ADC2 test PASSED with value:$ADC_VAL"
+		else
+			echo_red "ADC2 test FAILED with value:$ADC_VAL"
+			STATUS=1
+		fi
+
+		echo "Set GPIO${GPIO_INDEX} low"
+		echo 0 > /sys/class/gpio/gpio$GPIO/value
+
+		echo "Reading VIN${i}"
+		ADC_VAL=`cat /sys/bus/iio/devices/${I2C2_DEVICE}/in_voltage${i}_raw`
+		if (( $ADC_VAL < 2000 ))
+		then
+			echo_green "ADC2 test PASSED with value:$ADC_VAL"
+		else
+			echo_red "ADC2 test FAILED with value:$ADC_VAL"
+			STATUS=1
+		fi
+	done
+}
+
+while true; do
+
+	read -p "Press ENTER to start FMCBRIDGE Test Procedure"
+
+	STATUS=0
+
+	echo ""
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "~~~~~~~Device Initialization~~~~~~~~"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo ""
+
+	if [ -z $GPIO_FIRST ]; then
+		echo_red "No GPIO node found!"
+	else
+		echo_green "GPIO initial offset found: $GPIO_FIRST"
+		GPIO_LAST=$(($GPIO_FIRST + 21))
+		gpio_initialization
+		gpio_test_spi1
+		gpio_test_spi2
+	fi
+
+	if [ -z $SPI1_DEVICE ]; then
+		echo_red "AD5761_SPI1 not found."
+	else
+		SPI1_DEVICE="iio:device${SPI1_DEVICE}"
+		echo_green "SPI device 1 found: ${SPI1_DEVICE}"
+		dac_test_spi1
+	fi
+
+	if [ -z $SPI2_DEVICE ]; then
+		echo_red "AD5761_SPI12 not found."
+	else
+		SPI2_DEVICE="iio:device${SPI2_DEVICE}"
+		echo_green "SPI device 2 found: ${SPI2_DEVICE}"
+		dac_test_spi2
+	fi
+
+	if [ -z $I2C1_DEVICE ]; then
+		echo_red "AD7291_I2C1 not found."
+	else
+		I2C1_DEVICE="iio:device${I2C1_DEVICE}"
+		echo_green "I2C device 1 found: ${I2C1_DEVICE}"
+		adc_test_i2c1
+	fi
+
+	if [ -z $I2C2_DEVICE ]; then
+		echo_red "AD7291_I2C2 not found."
+	else
+		I2C2_DEVICE="iio:device${I2C2_DEVICE}"
+		echo_green "I2C device 2 found: ${I2C2_DEVICE}"
+		adc_test_i2c2
+	fi
 
 	if [ -z "$STATUS" ]
 	then
@@ -335,5 +350,4 @@ while true; do
 		echo_red "TESTS HAVE FAILED"
 		console_ascii_failed
 	fi
-
 done
