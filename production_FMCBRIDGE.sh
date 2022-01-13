@@ -358,7 +358,7 @@ while true; do
 		adc_test_i2c2
 	fi
 
-	if [ -z "$STATUS" ]
+	if [ "$STATUS" -eq 0 ]
 	then
 		echo_green "ALL TESTS HAVE PASSED"
 		console_ascii_passed
