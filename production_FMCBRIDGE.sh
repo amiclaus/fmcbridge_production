@@ -40,6 +40,7 @@ gpio_initialization() {
 	for ((i=$GPIO_FIRST;i<=$GPIO_LAST;i++))
 	do
 		echo "$i" > /sys/class/gpio/export 2>&1
+		echo out > /sys/class/gpio/gpio$i/direction
 	done
 	echo "GPIO initialization done."
 }
