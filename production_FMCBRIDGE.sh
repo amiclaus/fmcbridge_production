@@ -26,10 +26,10 @@ I2C2_ADDRESS=83100000
 
 GPIO_FIRST=`ls -l /sys/class/gpio/ | grep " gpiochip" | grep "$GPIO_ADDRESS" | grep -Eo '[0-9]+$'`
 
-SPI1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI1_ADDRESS" | grep -Eo '[0-9]+$'`
-SPI2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9]+$'`
-I2C1_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
-I2C2_DEVICE=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
+SPI1_DEVICE_NR=`ls -l /sys/bus/iio/devices/ | grep "$SPI1_ADDRESS" | grep -Eo '[0-9]+$'`
+SPI2_DEVICE_NR=`ls -l /sys/bus/iio/devices/ | grep "$SPI2_ADDRESS" | grep -Eo '[0-9]+$'`
+I2C1_DEVICE_NR=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[0-9]+$'`
+I2C2_DEVICE_NR=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
 gpio_initialization() {
 	echo ""
@@ -320,7 +320,7 @@ while true; do
 	if [ -z $SPI1_DEVICE ]; then
 		echo_red "AD5761_SPI1 not found."
 	else
-		SPI1_DEVICE="iio:device${SPI1_DEVICE}"
+		SPI1_DEVICE="iio:device${SPI1_DEVICE_NR}"
 		echo_green "SPI device 1 found: ${SPI1_DEVICE}"
 		dac_test_spi1
 	fi
@@ -331,7 +331,7 @@ while true; do
 	if [ -z $SPI2_DEVICE ]; then
 		echo_red "AD5761_SPI12 not found."
 	else
-		SPI2_DEVICE="iio:device${SPI2_DEVICE}"
+		SPI2_DEVICE="iio:device${SPI2_DEVICE_NR}"
 		echo_green "SPI device 2 found: ${SPI2_DEVICE}"
 		dac_test_spi2
 	fi
@@ -342,7 +342,7 @@ while true; do
 	if [ -z $I2C1_DEVICE ]; then
 		echo_red "AD7291_I2C1 not found."
 	else
-		I2C1_DEVICE="iio:device${I2C1_DEVICE}"
+		I2C1_DEVICE="iio:device${I2C1_DEVICE_NR}"
 		echo_green "I2C device 1 found: ${I2C1_DEVICE}"
 		adc_test_i2c1
 	fi
@@ -353,7 +353,7 @@ while true; do
 	if [ -z $I2C2_DEVICE ]; then
 		echo_red "AD7291_I2C2 not found."
 	else
-		I2C2_DEVICE="iio:device${I2C2_DEVICE}"
+		I2C2_DEVICE="iio:device${I2C2_DEVICE_NR}"
 		echo_green "I2C device 2 found: ${I2C2_DEVICE}"
 		adc_test_i2c2
 	fi
