@@ -289,6 +289,10 @@ adc_test_i2c2(){
 	done
 }
 
+#----------------------------------#
+# Main section                     #
+#----------------------------------#
+
 while true; do
 
 	read -p "Press ENTER to start FMCBRIDGE Test Procedure"
