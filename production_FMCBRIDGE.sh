@@ -296,14 +296,7 @@ adc_test_i2c2(){
 	done
 }
 
-#----------------------------------#
-# Main section                     #
-#----------------------------------#
-
-while true; do
-
-	read -p "Press ENTER to start FMCBRIDGE Test Procedure"
-
+test_fmcbridge() {
 	STATUS=0
 
 	echo ""
@@ -377,4 +370,29 @@ while true; do
 		echo_red "TESTS HAVE FAILED"
 		console_ascii_failed
 	fi
+}
+
+
+#----------------------------------#
+# Main section                     #
+#----------------------------------#
+
+while true; do
+
+	echo_blue "Please enter your choice: "
+
+	options=("Start FMCBRIDGE Test" "Poweroff Board")
+	select opt in "${options[@]}"; do
+		case $REPLY in
+			1)
+				echo_blue "Starting FMCBRIDGE Test"
+				test_fmcbridge
+				break ;;
+			2)
+				enforce_root
+				poweroff
+				break 2 ;;
+			*) echo "invalid option $REPLY";;
+		esac
+	done
 done
