@@ -1,11 +1,11 @@
 #!/bin/bash
 
+echo_red() { printf "\033[1;31m$*\033[m\n"; }
+echo_green() { printf "\033[1;32m$*\033[m\n"; }
+
 SCRIPT_DIR="$(readlink -f $(dirname $0))"
 
-if [ $(id -u) -ne 0 ] ; then
-	echo "Please run as root"
-	exit 1
-fi
+source $SCRIPT_DIR/lib/utils.sh
 
 GPIO_ADDRESS=86000000
 SPI1_ADDRESS=84000000
@@ -21,12 +21,14 @@ I2C1_DEVICE_NR=`ls -l /sys/bus/iio/devices/ | grep "$I2C1_ADDRESS" | grep -Eo '[
 I2C2_DEVICE_NR=`ls -l /sys/bus/iio/devices/ | grep "$I2C2_ADDRESS" | grep -Eo '[0-9]+$'`
 
 
+if [ $(id -u) -ne 0 ] ; then
+	echo "Please run as root"
+	exit 1
+fi
+
 #----------------------------------#
 # Function section                 #
 #----------------------------------#
-
-echo_red() { printf "\033[1;31m$*\033[m\n"; }
-echo_green() { printf "\033[1;32m$*\033[m\n"; }
 
 console_ascii_passed() {
 	echo_green "$(cat $SCRIPT_DIR/lib/passed.ascii)"
