@@ -38,6 +38,17 @@ console_ascii_failed() {
 	echo_red "$(cat $SCRIPT_DIR/lib/failed.ascii)"
 }
 
+get_board_scan() {
+	IS_OKBOARD=1
+	while [ $IS_OKBOARD -ne 0 ]; do
+		echo "Please use the scanner to scan the QR/Barcode on your carrier"
+		read BOARD_SERIAL
+		echo $BOARD_SERIAL | grep "S[0-9][0-9]" | grep "SN" &>/dev/null
+		IS_OKBOARD=$?
+		echo "QR SCAN: $BOARD_SERIAL"
+	done
+}
+
 gpio_initialization() {
 	echo ""
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -386,6 +397,7 @@ while true; do
 		case $REPLY in
 			1)
 				echo_blue "Starting FMCBRIDGE Test"
+				get_board_scan
 				test_fmcbridge
 				break ;;
 			2)
