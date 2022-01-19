@@ -7,6 +7,12 @@ SCRIPT_DIR="$(readlink -f $(dirname $0))"
 
 source $SCRIPT_DIR/lib/utils.sh
 
+EEPROM_PATH="/sys/bus/i2c/devices/8-0052/eeprom"
+MASTERFILE_PATH="/usr/local/src/fru_tools/masterfiles/AD-FMCOMMS8-EBZ-FRU.bin"
+SERIAL_NUMBER_PREFIX=$(date +"%m%Y")
+
+source $SCRIPT_DIR/test_util.sh
+
 GPIO_ADDRESS=86000000
 SPI1_ADDRESS=84000000
 SPI2_ADDRESS=84500000
@@ -47,6 +53,38 @@ get_board_scan() {
 		IS_OKBOARD=$?
 		echo "QR SCAN: $BOARD_SERIAL"
 	done
+}
+
+check_req() {
+	if [ ! -e $EEPROM_PATH ]
+	then
+		echo "EEPROM file not found on SYSFS"
+		exit 1
+	fi
+
+	if [ ! -e $FRU_TOOLS_PATH ]
+	then
+		echo "FRU TOOLS path not correct or masterfile not available"
+		exit 1
+	fi
+}
+
+write_fru() {
+	check_req
+	if which fru-dump > /dev/null
+	then
+		SERIAL_NUMBER="${SERIAL_NUMBER_PREFIX}${BOARD_SERIAL}";
+		fru-dump -i $MASTERFILE_PATH -o $EEPROM_PATH -d now -s $BOARD_SERIAL
+		return 0
+	else
+		echo "fru-dump command not found. Check if you have it installed."
+		exit 1
+	fi
+}
+
+get_fmcbridge_serial() {
+	BOARD_SR_NR=`fru-dump -i /sys/bus/i2c/devices/8-0052/eeprom -b | grep 'Serial Number' | cut -d' ' -f3 | tr -d '[:cntrl:]'`
+	echo "Read Serial from EEPROM: $BOARD_SR_NR"
 }
 
 gpio_initialization() {
