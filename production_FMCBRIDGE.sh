@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo_red() { printf "\033[1;31m$*\033[m\n"; }
-echo_green() { printf "\033[1;32m$*\033[m\n"; }
-
 SCRIPT_DIR="$(readlink -f $(dirname $0))"
 
 source $SCRIPT_DIR/lib/utils.sh
