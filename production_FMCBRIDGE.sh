@@ -11,8 +11,6 @@ EEPROM_PATH="/sys/bus/i2c/devices/8-0052/eeprom"
 MASTERFILE_PATH="/usr/local/src/fru_tools/masterfiles/AD-FMCOMMS8-EBZ-FRU.bin"
 SERIAL_NUMBER_PREFIX=$(date +"%m%Y")
 
-source $SCRIPT_DIR/test_util.sh
-
 GPIO_ADDRESS=86000000
 SPI1_ADDRESS=84000000
 SPI2_ADDRESS=84500000
