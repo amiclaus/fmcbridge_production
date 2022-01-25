@@ -70,7 +70,7 @@ write_fru() {
 	if which fru-dump > /dev/null
 	then
 		SERIAL_NUMBER="${SERIAL_NUMBER_PREFIX}${BOARD_SERIAL}";
-		fru-dump -i $MASTERFILE_PATH -o $EEPROM_PATH -d now -s $BOARD_SERIAL
+		fru-dump -i $MASTERFILE_PATH -o $EEPROM_PATH -d now -s $SERIAL_NUMBER
 		return 0
 	else
 		echo "fru-dump command not found. Check if you have it installed."
