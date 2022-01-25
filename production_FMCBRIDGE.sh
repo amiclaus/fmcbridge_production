@@ -46,6 +46,7 @@ get_board_scan() {
 		read BOARD_SERIAL
 		echo $BOARD_SERIAL | grep "S[0-9][0-9]" | grep "SN" &>/dev/null
 		IS_OKBOARD=$?
+		BOARD_SERIAL=`echo $BOARD_SERIAL | grep -Eo '[0-9]+$'`
 		echo "QR SCAN: $BOARD_SERIAL"
 	done
 }
