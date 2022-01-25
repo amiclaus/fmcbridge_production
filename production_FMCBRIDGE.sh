@@ -433,6 +433,8 @@ while true; do
 				echo_blue "Starting FMCBRIDGE Test"
 				get_board_scan
 				test_fmcbridge
+				write_fru
+				get_fmcbridge_serial
 				break ;;
 			2)
 				enforce_root
