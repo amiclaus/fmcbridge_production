@@ -44,9 +44,8 @@ get_board_scan() {
 	while [ $IS_OKBOARD -ne 0 ]; do
 		echo "Please use the scanner to scan the QR/Barcode on your carrier"
 		read BOARD_SERIAL
-		echo $BOARD_SERIAL | grep "S[0-9][0-9]" | grep "SN" &>/dev/null
 		IS_OKBOARD=$?
-		BOARD_SERIAL=`echo $BOARD_SERIAL | grep -Eo '[0-9]+$'`
+		BOARD_SERIAL=`echo $BOARD_SERIAL | tr -d ' ' | tr -d '-'`
 		echo "QR SCAN: $BOARD_SERIAL"
 	done
 }
@@ -69,8 +68,7 @@ write_fru() {
 	check_req
 	if which fru-dump > /dev/null
 	then
-		SERIAL_NUMBER="${SERIAL_NUMBER_PREFIX}${BOARD_SERIAL}";
-		fru-dump -i $MASTERFILE_PATH -o $EEPROM_PATH -d now -s $SERIAL_NUMBER
+		fru-dump -i $MASTERFILE_PATH -o $EEPROM_PATH -d now -s $BOARD_SERIAL
 		return 0
 	else
 		echo "fru-dump command not found. Check if you have it installed."
