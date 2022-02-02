@@ -5,7 +5,7 @@ SCRIPT_DIR="$(readlink -f $(dirname $0))"
 source $SCRIPT_DIR/lib/utils.sh
 
 EEPROM_PATH="/sys/bus/i2c/devices/8-0052/eeprom"
-MASTERFILE_PATH="/usr/local/src/fru_tools/masterfiles/AD-FMCBRIDGE-EBZ.bin"
+MASTERFILE_PATH="/usr/local/src/fru_tools/masterfiles/AD-FMCXMWBR1-EBZ-FRU.bin"
 SERIAL_NUMBER_PREFIX=$(date +"%m%Y")
 
 GPIO_ADDRESS=86000000
