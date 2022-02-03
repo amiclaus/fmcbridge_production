@@ -9,6 +9,8 @@ SCRIPT_DIR="$(readlink -f $(dirname $0))"
 
 source $SCRIPT_DIR/lib/utils.sh
 
+SUPPORTED_BOARDS="FMCBRIDGE"
+
 INIT_PINS_SCRIPT="$SCRIPT_DIR"/init.sh
 
 #----------------------------------#
@@ -72,61 +74,6 @@ __download_github_common() {
 	}
 }
 
-setup_libiio() {
-	[ ! -d "work/libiio" ] || return 0
-
-	__download_github_common libiio
-	__download_github_common libad9361-iio
-
-	pushd work
-	mkdir -p libiio/build
-	pushd libiio/build
-
-	cmake ..
-	make -j3
-	sudo make install
-
-	popd
-
-	pushd libad9361-iio
-
-	cmake ./CMakeLists.txt
-	make -j3
-	sudo make install
-	sudo ldconfig
-
-	popd
-	popd
-}
-
-setup_adm1266() {
-	[ ! -d "src/adm1266" ] || return 0
-
-	pushd src
-	pushd adm1266
-
-	make all
-
-	popd
-	popd
-}
-
-setup_pyadi-iio() {
-	[ ! -d "work/pyadi-iio" ] || return 0
-
-	__download_github_common pyadi-iio
-	#Set python3 as default
-	sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
-	sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
-
-	pushd work
-	pushd pyadi-iio
-	git checkout som-testing-fmcomms8
-
-	popd
-	popd
-}
-
 setup_write_autostart_config() {
 	local autostart_path="$HOME/.config/autostart"
 	local configs_disable="blueman light-locker polkit-gnome-authentication-agent-1"
@@ -144,6 +91,9 @@ Hidden=true
 	done
 
 	local font_size="16"
+	if [ "$BOARD" == "pluto" ] ; then
+		font_size=14
+	fi
 
 	# FIXME: see about generalizing this to other desktops [Gnome, MATE, LXDE, etc]
 	cat > $autostart_path/test-jig-tool.desktop <<-EOF
@@ -153,33 +103,8 @@ Version=0.9.4
 Type=Application
 Name=test-jig-tool
 Comment=test-jig-tool
-Exec=sudo xfce4-terminal --font="DejaVu Sans Mono $font_size" --fullscreen --hide-borders --hide-scrollbar --hide-menubar -x $SCRIPT_DIR/production_fmcbridge.sh
+Exec=sudo xfce4-terminal --font="DejaVu Sans Mono $font_size" --fullscreen --hide-borders --hide-scrollbar --hide-menubar -x $SCRIPT_DIR/production_${BOARD}.sh
 OnlyShowIn=XFCE;LXDE
-StartupNotify=false
-Terminal=false
-Hidden=false
-	EOF
-
-	if type ufw &> /dev/null ; then
-		sudo ufw enable
-		sudo ufw allow ssh
-	fi
-
-	mkdir -p "$HOME/.ssh"
-	cat "$SCRIPT_DIR/config/jig_id.pub" >> "$HOME/.ssh/authorized_keys"
-	sudo chown "$USER.$USER" "$HOME/.ssh/authorized_keys"
-	chmod 0600 "$HOME/.ssh/authorized_keys"
-
-	sudo chown "$USER.$USER" "$SCRIPT_DIR/config/jig_id"
-	chmod 0600 "$SCRIPT_DIR/config/jig_id"
-	cat > $autostart_path/call-home.desktop <<-EOF
-[Desktop Entry]
-Encoding=UTF-8
-Version=0.9.4
-Type=Application
-Name=call-home
-Comment=call-home
-Exec=/bin/bash $SCRIPT_DIR/call_home
 StartupNotify=false
 Terminal=false
 Hidden=false
@@ -198,6 +123,15 @@ Terminal=false
 Hidden=false
 	EOF
 
+}
+
+board_is_supported() {
+	local board="$1"
+	[ -n "$board" ] || return 1
+	for b in $SUPPORTED_BOARDS ; do
+		[ "$b" != "$board" ] || return 0
+	done
+	return 1
 }
 
 xfconf_has_cap() {
@@ -274,6 +208,7 @@ setup_disable_lxde_automount() {
 }
 
 setup_pi_boot_config() {
+	[ "$BOARD" == "pluto" ] || return 0
 
 	[ -f /boot/config.txt ] || return 0
 
@@ -350,37 +285,12 @@ export PATH=/usr/lib/:$PATH
 	EOF
 }
 
-setup_dhcp_config() {
-
-    sudo_required
-
-    cat >> /etc/dhcpcd.conf <<-EOF
-# --- added by setup_env.sh
-interface eth0
-static ip_address=192.168.0.1/24
-#static routers=192.168.0.1
-#static domain_name_servers=192.168.0.1
-static domain_search=
-# --- end setup_env.sh
-	EOF
-
-    sudo -s <<-EOF
-echo "# --- added by setup_env.sh
-#DHCP server active for eth0 interface
-interface=eth0
-
-#DHCP server not active for wlan0
-no-dhcp-interface = wlan0
-
-# Ip range
-dhcp-range=192.168.0.100,192.168.0.150,24h
-# --- end setup_env.sh" > /etc/dnsmasq.conf
-	EOF
-}
-
 #----------------------------------#
 # Main section                     #
 #----------------------------------#
+
+BOARD="$1"
+TARGET="$2"
 
 if [ `id -u` == "0" ]
 then
@@ -388,17 +298,32 @@ then
 	exit 1
 fi
 
+board_is_supported "$BOARD" || {
+	echo_red "Board '$BOARD' is not supported by this script"
+	echo_red "   Supported boards are '$SUPPORTED_BOARDS'"
+	exit 1
+}
+
 pushd $SCRIPT_DIR
 
 STEPS="bashrc_update disable_sudo_passwd misc_profile_cleanup raspi_config xfce4_power_manager_settings"
 STEPS="$STEPS thunar_volman disable_lxde_automount apt_install_prereqs"
-STEPS="$STEPS write_autostart_config libiio pyadi-iio adm1266"
+STEPS="$STEPS write_autostart_config"
 STEPS="$STEPS pi_boot_config disable_pi_screen_blanking"
-STEPS="$STEPS dhcp_config"
 
 RAN_ONCE=0
 for step in $STEPS ; do
-	setup_$step
+	if [ "$TARGET" == "$step" ] || [ "$TARGET" == "jig" ] ; then
+		setup_$step
+		RAN_ONCE=1
+	fi
 done
+
+if [ "$RAN_ONCE" == "0" ] ; then
+	echo_red "Invalid build target '$TARGET'; valid targets are 'jig' or:"
+	for step in $STEPS ; do
+		echo_red "    $step"
+	done
+fi
 
 popd
