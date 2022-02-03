@@ -339,6 +339,13 @@ adc_test_i2c2(){
 	done
 }
 
+prepare_logs() {
+	LOGDIR=$SCRIPT_DIR/log
+	mkdir -p $LOGDIR
+	RUN_TIMESTAMP="$(date +"%Y-%m-%d_%H-%M-%S")"
+	LOGFILE="${LOGDIR}/${BOARD_SERIAL}_${RUN_TIMESTAMP}.log"
+}
+
 test_fmcbridge() {
 	STATUS=0
 
@@ -430,7 +437,8 @@ while true; do
 			1)
 				echo_blue "Starting FMCBRIDGE Test"
 				get_board_scan
-				test_fmcbridge
+				prepare_logs
+				test_fmcbridge | tee "${LOGFILE}"
 				write_fru
 				get_fmcbridge_serial
 				break ;;
