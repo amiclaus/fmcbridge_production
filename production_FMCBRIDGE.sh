@@ -427,6 +427,8 @@ test_fmcbridge() {
 # Main section                     #
 #----------------------------------#
 
+/etc/init.d/htpdate restart > /dev/null 2>&1
+
 while true; do
 
 	echo_blue "Please enter your choice: "
